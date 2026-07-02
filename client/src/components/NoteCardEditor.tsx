@@ -220,7 +220,10 @@ export default function NoteCardEditor({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+      onDoubleClick={(e) => e.stopPropagation()}
+    >
       <div style={{ position: 'relative' }}>
         <textarea
           ref={textareaRef}
@@ -318,7 +321,10 @@ export default function NoteCardEditor({
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
-            onClick={onCancel}
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel();
+            }}
             className="submit-btn"
             style={{ backgroundColor: 'var(--text-light)' }}
           >
@@ -326,7 +332,10 @@ export default function NoteCardEditor({
           </button>
           <button
             type="button"
-            onClick={onSave}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSave();
+            }}
             className="submit-btn"
             disabled={!value.trim()}
           >

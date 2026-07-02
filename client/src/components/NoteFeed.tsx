@@ -73,6 +73,7 @@ export default function NoteFeed({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const noteContextMenuRef = useRef<HTMLDivElement | null>(null);
+  const suppressEditDoubleClickUntilRef = useRef(0);
 
   const openImagePreview = (src: string, alt: string) => {
     setPreviewScale(1);
@@ -366,7 +367,22 @@ export default function NoteFeed({
     setEditingContent(note.content);
   };
 
+  const shouldIgnoreEditDoubleClick = (target: EventTarget | null) => (
+    target instanceof Element &&
+    Boolean(target.closest('button, a, input, textarea, select, [role="button"], .card-tag, .card-link-pill, .relation-pill'))
+  );
+
+  const handleNoteDoubleClick = (e: ReactMouseEvent<HTMLDivElement>, note: Note) => {
+    if (
+      editingId === note.id ||
+      Date.now() < suppressEditDoubleClickUntilRef.current ||
+      shouldIgnoreEditDoubleClick(e.target)
+    ) return;
+    handleStartEdit(note);
+  };
+
   const handleCancelEdit = () => {
+    suppressEditDoubleClickUntilRef.current = Date.now() + 350;
     setEditingId(null);
     setEditingContent('');
   };
@@ -811,6 +827,7 @@ export default function NoteFeed({
                 id={`note-card-${note.id}`}
                 className={`note-card${note.is_pinned ? ' pinned' : ''}`}
                 onContextMenu={(e) => handleNoteContextMenu(e, note)}
+                onDoubleClick={(e) => handleNoteDoubleClick(e, note)}
               >
                 {editingId === note.id ? (
                   <NoteCardEditor
