@@ -827,7 +827,7 @@ export default function NoteFeed({
                 id={`note-card-${note.id}`}
                 className={`note-card${note.is_pinned ? ' pinned' : ''}`}
                 onContextMenu={(e) => handleNoteContextMenu(e, note)}
-                onDoubleClick={(e) => handleNoteDoubleClick(e, note)}
+                onDoubleClick={editingId === note.id ? undefined : (e) => handleNoteDoubleClick(e, note)}
               >
                 {editingId === note.id ? (
                   <NoteCardEditor

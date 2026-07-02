@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ChangeEvent, ClipboardEvent } from 'react';
+import type { ChangeEvent, ClipboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { continueListItem } from '../editorText';
 import { getClipboardImageFiles, uploadImageFile } from '../imageUpload';
 import type { Note } from '../types';
@@ -35,6 +35,7 @@ export default function NoteCardEditor({
   const [selectedEmbedIndex, setSelectedEmbedIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const pointerActionAtRef = useRef(0);
 
   const embedSuggestions = showEmbedPicker ? notes.filter(note => {
     const search = embedSearch.toLowerCase();
@@ -219,6 +220,24 @@ export default function NoteCardEditor({
     await uploadAndInsertImages(imageFiles);
   };
 
+  const runEditorAction = (action: () => void) => {
+    setShowEmbedPicker(false);
+    action();
+  };
+
+  const handleActionPointerDown = (e: ReactPointerEvent<HTMLButtonElement>, action: () => void) => {
+    e.preventDefault();
+    e.stopPropagation();
+    pointerActionAtRef.current = Date.now();
+    runEditorAction(action);
+  };
+
+  const handleActionClick = (e: ReactMouseEvent<HTMLButtonElement>, action: () => void) => {
+    e.stopPropagation();
+    if (Date.now() - pointerActionAtRef.current < 500) return;
+    runEditorAction(action);
+  };
+
   return (
     <div
       style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
@@ -321,10 +340,8 @@ export default function NoteCardEditor({
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onCancel();
-            }}
+            onPointerDown={(e) => handleActionPointerDown(e, onCancel)}
+            onClick={(e) => handleActionClick(e, onCancel)}
             className="submit-btn"
             style={{ backgroundColor: 'var(--text-light)' }}
           >
@@ -332,10 +349,8 @@ export default function NoteCardEditor({
           </button>
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSave();
-            }}
+            onPointerDown={(e) => handleActionPointerDown(e, onSave)}
+            onClick={(e) => handleActionClick(e, onSave)}
             className="submit-btn"
             disabled={!value.trim()}
           >
